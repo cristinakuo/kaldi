@@ -10,15 +10,16 @@
 
 locdata=data/local
 locdict=$locdata/dict
+model_name=model-4
 
 echo "=== Preparing the dictionary ..."
 
-if [ ! -f $locdict/cmudict/cmudict.0.7a ]; then
-  echo "--- Downloading CMU dictionary ..."
-  mkdir -p $locdict
-  svn co http://svn.code.sf.net/p/cmusphinx/code/trunk/cmudict \
-    $locdict/cmudict || exit 1;
-fi
+#if [ ! -f $locdict/cmudict/cmudict-0.7b ]; then
+#  echo "--- Downloading CMU dictionary ..."
+#  mkdir -p $locdict
+#  svn co http://svn.code.sf.net/p/cmusphinx/code/trunk/cmudict \
+#    $locdict/cmudict || exit 1;
+#fi
 
 echo "--- Striping stress and pronunciation variant markers from cmudict ..."
 perl $locdict/cmudict/scripts/make_baseform.pl \
@@ -26,18 +27,20 @@ perl $locdict/cmudict/scripts/make_baseform.pl \
   sed -e 's:^\([^\s(]\+\)([0-9]\+)\(\s\+\)\(.*\):\1\2\3:' | tr '[A-Z]' '[a-z]' > $locdict/cmudict-plain.txt
 
 echo "--- Searching for OOV words ..."
-awk 'NR==FNR{words[$1]; next;} !($1 in words)' \
+awk 'NR==FNR{words[$1]; next;} !(tolower($1) in words)' \
   $locdict/cmudict-plain.txt $locdata/vocab-full.txt |\
-  egrep -v '<.?s>' > $locdict/vocab-oov.txt
+  egrep -v '<.?s>' | tr '[A-Z]' '[a-z]' > $locdict/vocab-oov.txt
 
-awk 'NR==FNR{words[$1]; next;} ($1 in words)' \
+awk 'NR==FNR{words[tolower($1)]; next;} ($1 in words)' \
   $locdata/vocab-full.txt $locdict/cmudict-plain.txt |\
-  egrep -v '<.?s>' > $locdict/lexicon-iv.txt
+  egrep -v '<.?s>' | tr '[a-z]' '[A-Z]' > $locdict/lexicon-iv.txt
 
 wc -l $locdict/vocab-oov.txt
 wc -l $locdict/lexicon-iv.txt
 
-if [ ! -f conf/g2p_model ]; then
+if [ ! -f conf/$model_name ]; then
+  echo "Model conf/$model_name not found!"
+  exit 1
   echo "--- Downloading a pre-trained Sequitur G2P model ..."
   wget http://sourceforge.net/projects/kaldi/files/sequitur-model4 -O conf/g2p_model
   if [ ! -f conf/g2p_model ]; then
@@ -63,7 +66,9 @@ if ! g2p=`which g2p.py` ; then
 fi
 
 echo "--- Preparing pronunciations for OOV words ..."
-g2p.py --model=conf/g2p_model --apply $locdict/vocab-oov.txt > $locdict/lexicon-oov.txt
+echo "Model G2P: $model_name"
+g2p.py --model=conf/$model_name --apply $locdict/vocab-oov.txt |\
+  tr '[a-z]' '[A-Z]' > $locdict/lexicon-oov.txt
 
 cat $locdict/lexicon-oov.txt $locdict/lexicon-iv.txt |\
   sort > $locdict/lexicon.txt

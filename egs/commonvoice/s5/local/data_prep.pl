@@ -23,7 +23,7 @@ open(WAV,">", "$out_dir/wav.scp") or die "Could not open the output file $out_di
 my $header = <CSV>;
 while(<CSV>) {
   chomp;
-  ($filepath, $text, $upvotes, $downvotes, $age, $gender, $accent, $duration) = split(",", $_);
+  ($cliente_id, $filepath, $text, $upvotes, $downvotes, $age, $gender, $accent) = split(",", $_);
   if ("$gender" eq "female") {
     $gender = "f";
   } else {
@@ -46,7 +46,7 @@ while(<CSV>) {
   $text =~ tr/a-z/A-Z/;
   print TEXT "$uttId"," ","$text","\n";
   print GNDR "$uttId"," ","$gender","\n";
-  print WAV "$uttId"," sox $db_base/$filepath -t wav -r 16k -b 16 -e signed - |\n";
+  print WAV "$uttId"," sox $db_base/clips/$filepath -t wav -r 16k -b 16 -e signed - |\n";
   print SPKR "$uttId"," $spkr","\n";
 }
 close(SPKR) || die;

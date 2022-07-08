@@ -10,7 +10,7 @@
 
 echo "=== Building a language model ..."
 
-data=data/valid_train
+data=data/train
 locdata=data/local
 # Language model order
 order=3
@@ -29,6 +29,7 @@ if [ -z $loc ]; then
   else
     sdir=$KALDI_ROOT/tools/srilm/bin/i686
   fi
+  echo "SDIR is ... $sdir"
   if [ -f $sdir/ngram-count ]; then
     echo Using SRILM tools from $sdir
     export PATH=$PATH:$sdir
