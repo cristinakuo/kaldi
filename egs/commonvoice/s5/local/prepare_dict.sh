@@ -23,7 +23,7 @@ echo "=== Preparing the dictionary ..."
 
 echo "--- Striping stress and pronunciation variant markers from cmudict ..."
 perl $locdict/cmudict/scripts/make_baseform.pl \
-  $locdict/cmudict/cmudict.0.7a /dev/stdout |\
+  $locdict/cmudict/lexicon.02.processed /dev/stdout |\
   sed -e 's:^\([^\s(]\+\)([0-9]\+)\(\s\+\)\(.*\):\1\2\3:' | tr '[A-Z]' '[a-z]' > $locdict/cmudict-plain.txt
 
 echo "--- Searching for OOV words ..."
