@@ -54,21 +54,22 @@ if [ $stage -le 2 ]; then
   echo STAGE_2
   mfccdir=mfcc
   # spread the mfccs over various machines, as this data-set is quite large.
-  if [[  $(hostname -f) ==  *.clsp.jhu.edu ]]; then
-    mfcc=$(basename mfccdir) # in case was absolute pathname (unlikely), get basename.
-    utils/create_split_dir.pl /export/b{07,14,16,17}/$USER/kaldi-data/mfcc/commonvoice/s5/$mfcc/storage \
-      $mfccdir/storage
-  fi
+  #if [[  $(hostname -f) ==  *.clsp.jhu.edu ]]; then
+  #  mfcc=$(basename mfccdir) # in case was absolute pathname (unlikely), get basename.
+  #  utils/create_split_dir.pl /export/b{07,14,16,17}/$USER/kaldi-data/mfcc/commonvoice/s5/$mfcc/storage \
+  #    $mfccdir/storage
+  #fi
 
-  for part in train dev 'test'; do
+  for part in train val 'test'; do
     steps/make_mfcc.sh --cmd "$train_cmd" --nj 20 data/$part exp/make_mfcc/$part $mfccdir
     steps/compute_cmvn_stats.sh data/$part exp/make_mfcc/$part $mfccdir
   done
 
   # Get the shortest 10000 utterances first because those are more likely
   # to have accurate alignments.
-  utils/subset_data_dir.sh --shortest data/train 1000 data/train_10kshort || exit 1;
-  utils/subset_data_dir.sh data/train 2000 data/train_20k || exit 1;
+  # NOTE: Not using subsets because already too few samples.
+  #utils/subset_data_dir.sh --shortest data/train 1000 data/train_10kshort || exit 1;
+  #utils/subset_data_dir.sh data/train 2000 data/train_20k || exit 1;
 fi
 
 # train a monophone system
