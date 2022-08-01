@@ -6,6 +6,7 @@ import errno
 import unidecode
 
 chars_to_ignore_regex = '[\|\`\~\=\_\{\}\“\'\,\¿\¡\?\.\$\!\-\;\:\"\(\)\[\&\]\>\^\x7f]'
+chars_to_ignore = ['"', '-', '`', '.', '*', ':', 'ː', '\'', "...", "-", "--", "<"]
 
 def mkdir_p(path):
     try:
@@ -17,9 +18,14 @@ def mkdir_p(path):
             raise
 
 def remove_special_characters(text):
-    clean_text = re.sub(chars_to_ignore_regex, ' ', text)
-    clean_text = " ".join(clean_text.split())
-    return clean_text
+    old_text = text
+    for symbol in chars_to_ignore:
+        text = text.replace(symbol, " ")
+    text = text.replace("@", "a")
+
+    text = re.sub(chars_to_ignore_regex, ' ', text)
+    text = " ".join(text.split())
+    return text
 
 def replace_tilde(text):
     text = text.replace("ña", "nia")
@@ -32,9 +38,9 @@ def replace_tilde(text):
 
 def process_text(text):
     text = text.lower()
-    text = remove_special_characters(text)
     text = replace_tilde(text)
     text = unidecode.unidecode(text) # For removing accents
+    text = remove_special_characters(text)
     text = text.strip() # Remove beginning and end spaces
 
     return text
