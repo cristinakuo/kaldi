@@ -5,7 +5,7 @@
 # Copyright 2017   Ewald Enzinger
 # Apache 2.0
 
-data=$HOME/storage/fiuba/tesis/dbase/common-voice-es-v1
+data=$HOME/storage/fiuba/tesis/dbase/latino40/preprocessed/latino40_asr
 data_url=https://common-voice-data-download.s3.amazonaws.com/cv_corpus_v1.tar.gz
 
 . ./cmd.sh
@@ -27,7 +27,7 @@ fi
 
 if [ $stage -le 1 ]; then
   echo ">>>>>>STAGE1"
-  for part in train dev 'test'; do
+  for part in train val 'test'; do
     # use underscore-separated names in data directories.
     echo "Running cmd: local/data_prep.pl $data $part data/$(echo $part | tr - _)"
     local/data_prep.pl $data $part data/$(echo $part | tr - _)
@@ -36,6 +36,7 @@ if [ $stage -le 1 ]; then
   echo ">>>>>>STAGE1_LM"
   # Prepare ARPA LM and vocabulary using SRILM
   local/prepare_lm.sh data/train
+  
   # Prepare the lexicon and various phone lists
   # Pronunciations for OOV words are obtained using a pre-trained Sequitur model
   echo ">>>>>>STAGE1_DICT"

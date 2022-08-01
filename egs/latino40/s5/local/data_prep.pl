@@ -15,7 +15,7 @@ if (@ARGV != 3) {
 mkdir data unless -d data;
 mkdir $out_dir unless -d $out_dir;
 
-open(CSV, "<", "$db_base/$dataset.csv") or die "cannot open dataset CSV file";
+open(CSV, "<", "$db_base/data_$dataset.csv") or die "cannot open dataset CSV file";
 open(SPKR,">", "$out_dir/utt2spk") or die "Could not open the output file $out_dir/utt2spk";
 open(GNDR,">", "$out_dir/utt2gender") or die "Could not open the output file $out_dir/utt2gender";
 open(TEXT,">", "$out_dir/text") or die "Could not open the output file $out_dir/text";
@@ -23,7 +23,7 @@ open(WAV,">", "$out_dir/wav.scp") or die "Could not open the output file $out_di
 my $header = <CSV>;
 while(<CSV>) {
   chomp;
-  ($cliente_id, $filepath, $text, $upvotes, $downvotes, $age, $gender, $accent) = split(",", $_);
+  ($sample_id, $text, $filepath) = split(",", $_);
   if ("$gender" eq "female") {
     $gender = "f";
   } else {
