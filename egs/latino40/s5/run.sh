@@ -76,80 +76,76 @@ fi
 if [ $stage -le 3 ]; then
   echo ">>>>>>STAGE 3"
   steps/train_mono.sh --boost-silence 1.25 --nj 20 --cmd "$train_cmd" \
-    data/train_10kshort data/lang exp/mono || exit 1;
+    data/train data/lang exp/mono || exit 1;
   (
     utils/mkgraph.sh data/lang_test exp/mono exp/mono/graph
-    for testset in dev; do
+    for testset in val 'test'; do
       steps/decode.sh --nj 20 --cmd "$decode_cmd" exp/mono/graph \
         data/$testset exp/mono/decode_$testset
     done
   )&
-  echo hello
+  
   steps/align_si.sh --boost-silence 1.25 --nj 10 --cmd "$train_cmd" \
-    data/train_20k data/lang exp/mono exp/mono_ali_train_20k
+    data/train data/lang exp/mono exp/mono_ali_train
 fi
 
-wait
-echo "DONE"
-exit
 # train a first delta + delta-delta triphone system
 if [ $stage -le 4 ]; then
   echo ">>>>>>STAGE 4"
   steps/train_deltas.sh --boost-silence 1.25 --cmd "$train_cmd" \
-    2000 10000 data/train_20k data/lang exp/mono_ali_train_20k exp/tri1
+    2000 10000 data/train data/lang exp/mono_ali_train exp/tri1
   echo "STAGE 4 pre decode"
   # decode using the tri1 model
   (
     utils/mkgraph.sh data/lang_test exp/tri1 exp/tri1/graph
-    for testset in dev; do
-      steps/decode.sh --nj 20 --cmd "$decode_cmd" exp/tri1/graph \
+    for testset in val 'test'; do
+      steps/decode.sh --nj 10 --cmd "$decode_cmd" exp/tri1/graph \
         data/$testset exp/tri1/decode_$testset
     done
   )&
   echo "STAGE 4 pre align"
   steps/align_si.sh --nj 10 --cmd "$train_cmd" \
-    data/train_20k data/lang exp/tri1 exp/tri1_ali_train_20k
+    data/train data/lang exp/tri1 exp/tri1_ali_train
 fi
-
-wait
-echo "DONE"
 
 # train an LDA+MLLT system.
 if [ $stage -le 5 ]; then
   echo ">>>>>>STAGE 5"
   steps/train_lda_mllt.sh --cmd "$train_cmd" \
     --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
-    data/train_20k data/lang exp/tri1_ali_train_20k exp/tri2b
+    data/train data/lang exp/tri1_ali_train exp/tri2b
 
   # decode using the LDA+MLLT model
   utils/mkgraph.sh data/lang_test exp/tri2b exp/tri2b/graph
   (
-    for testset in dev; do
-      steps/decode.sh --nj 20 --cmd "$decode_cmd" exp/tri2b/graph \
+    for testset in val 'test'; do
+      steps/decode.sh --nj 10 --cmd "$decode_cmd" exp/tri2b/graph \
         data/$testset exp/tri2b/decode_$testset
     done
   )&
 
   # Align utts using the tri2b model
   steps/align_si.sh --nj 10 --cmd "$train_cmd" --use-graphs true \
-    data/train_20k data/lang exp/tri2b exp/tri2b_ali_train_20k
+    data/train data/lang exp/tri2b exp/tri2b_ali_train
 fi
+
 
 # Train tri3b, which is LDA+MLLT+SAT
 if [ $stage -le 6 ]; then
   echo ">>>>>>STAGE 6"
-  steps/train_sat.sh --cmd "$train_cmd" 2500 15000 \
-    data/train_20k data/lang exp/tri2b_ali_train_20k exp/tri3b
+  #steps/train_sat.sh --cmd "$train_cmd" 2500 15000 \
+  #  data/train data/lang exp/tri2b_ali_train exp/tri3b
 
   # decode using the tri3b model
   (
     utils/mkgraph.sh data/lang_test exp/tri3b exp/tri3b/graph
-    for testset in dev; do
+    for testset in val 'test'; do
       steps/decode_fmllr.sh --nj 10 --cmd "$decode_cmd" \
         exp/tri3b/graph data/$testset exp/tri3b/decode_$testset
     done
   )&
 fi
+
 
 if [ $stage -le 7 ]; then
   echo ">>>>>>STAGE 7"
