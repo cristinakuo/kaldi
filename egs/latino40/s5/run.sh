@@ -8,27 +8,48 @@
 #data=$HOME/storage/fiuba/tesis/dbase/latino40/preprocessed/latino40_asr
 # Shuffled place
 # TODO: Change location
-data=$HOME/storage/fiuba/tesis/dbase/latino40/preprocessed/latino40_asr
+
+
+# Ensure the correct number of arguments is provided
+if [ $# -lt 1 ] || [ $# -gt 3 ]; then
+  echo "Usage: $0 <data_directory> [<start_stage> <end_stage>]"
+  exit 1
+fi
+
+# Set data directory (argument 1 or default)
+default_data=$HOME/storage/fiuba/tesis/dbase/latino40/preprocessed/latino40_asr
+data=${1:-$default_data}
+
+# Set start stage (argument 2, if provided, otherwise default to 1)
+start_stage=${2:-1}
+
+# Set end stage (argument 3, if provided, otherwise default to 8)
+end_stage=${3:-8}
+
+# Ensure the data directory is valid
+if [ ! -d "$data" ]; then
+  echo "Error: Data directory '$data' not found."
+  exit 1
+fi
+
 data_url=https://common-voice-data-download.s3.amazonaws.com/cv_corpus_v1.tar.gz
 
 . ./cmd.sh
 . ./path.sh
-
-stage=1
 
 . ./utils/parse_options.sh
 
 set -euo pipefail
 
 # This stage should not be used
-if [ $stage -le 0 ]; then
+if [ $start_stage -le 0 ] && [ $end_stage -ge 0 ]; then
   echo STAGE_1
   mkdir -p $data
 
   local/download_and_untar.sh $(dirname $data) $data_url
 fi
 
-if [ $stage -le 1 ]; then
+if [ $start_stage -le 1 ] && [ $end_stage -ge 1 ]; then
   echo ">>>>>>STAGE1"
   for part in train val 'test'; do
     # use underscore-separated names in data directories.
@@ -53,7 +74,7 @@ if [ $stage -le 1 ]; then
   utils/format_lm.sh data/lang data/local/lm.gz data/local/dict/lexicon.txt data/lang_test/
 fi
 
-if [ $stage -le 2 ]; then
+if [ $start_stage -le 2 ] && [ $end_stage -ge 2 ]; then
   echo STAGE_2
   mfccdir=mfcc
   # spread the mfccs over various machines, as this data-set is quite large.
@@ -76,7 +97,7 @@ if [ $stage -le 2 ]; then
 fi
 
 # train a monophone system
-if [ $stage -le 3 ]; then
+if [ $start_stage -le 3 ] && [ $end_stage -ge 3 ]; then
   echo ">>>>>>STAGE 3"
   steps/train_mono.sh --boost-silence 1.25 --nj 20 --cmd "$train_cmd" \
     data/train data/lang exp/mono || exit 1;
@@ -93,7 +114,7 @@ if [ $stage -le 3 ]; then
 fi
 
 # train a first delta + delta-delta triphone system
-if [ $stage -le 4 ]; then
+if [ $start_stage -le 4 ] && [ $end_stage -ge 4 ]; then
   echo ">>>>>>STAGE 4"
   steps/train_deltas.sh --boost-silence 1.25 --cmd "$train_cmd" \
     2000 10000 data/train data/lang exp/mono_ali_train exp/tri1
@@ -112,7 +133,7 @@ if [ $stage -le 4 ]; then
 fi
 
 # train an LDA+MLLT system.
-if [ $stage -le 5 ]; then
+if [ $start_stage -le 5 ] && [ $end_stage -ge 5 ]; then
   echo ">>>>>>STAGE 5"
   steps/train_lda_mllt.sh --cmd "$train_cmd" \
     --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
@@ -134,7 +155,7 @@ fi
 
 
 # Train tri3b, which is LDA+MLLT+SAT
-if [ $stage -le 6 ]; then
+if [ $start_stage -le 6 ] && [ $end_stage -ge 6 ]; then
   echo ">>>>>>STAGE 6"
   #steps/train_sat.sh --cmd "$train_cmd" 2500 15000 \
   #  data/train data/lang exp/tri2b_ali_train exp/tri3b
@@ -150,7 +171,7 @@ if [ $stage -le 6 ]; then
 fi
 
 
-if [ $stage -le 7 ]; then
+if [ $start_stage -le 7 ] && [ $end_stage -ge 7 ]; then
   echo ">>>>>>STAGE 7"
   # Align utts in the full training set using the tri3b model
   steps/align_fmllr.sh --nj 20 --cmd "$train_cmd" \
@@ -174,11 +195,10 @@ if [ $stage -le 7 ]; then
 fi
 
 # Train a chain model
-if [ $stage -le 8 ]; then
+if [ $start_stage -le 8 ] && [ $end_stage -ge 8 ]; then
   echo ">>>>>>STAGE 8"
   local/chain/run_tdnn.sh --stage 0
 fi
 
 # Don't finish until all background decoding jobs are finished.
-#wait
-
+wait
