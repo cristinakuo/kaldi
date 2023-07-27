@@ -102,6 +102,10 @@ SEQUITUR=$(pwd)/$site_packages_dir
 # DEBUG
 echo HELLO
 pwd
+echo python
+which python
+echo python3
+which python3
 # some bits of info to troubleshoot this in case people have problems
 echo -n  >&2 "USER SITE: "; PYTHONPATH="" python -m site --user-site
 echo >&2 "SEQUITUR_PACKAGE: ${site_packages_dir:-}"
