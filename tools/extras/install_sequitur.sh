@@ -98,6 +98,7 @@ fi
 # expect the directory in which we will be installing to be visible
 # as module directory to python
 site_packages_dir=$(PYTHONPATH="" python3 -m site --user-site | grep -oE "lib.*")
+echo "Site packages... ${site_packages_dir}"
 SEQUITUR=$(pwd)/$site_packages_dir
 # DEBUG
 echo HELLO
