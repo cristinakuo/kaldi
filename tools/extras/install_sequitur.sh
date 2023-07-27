@@ -5,7 +5,7 @@ GIT=${GIT:-git}
 set -u
 set -e
 
-
+alias python=python3
 # Make sure we are in the tools/ directory.
 if [ `basename $PWD` == extras ]; then
   cd ..
