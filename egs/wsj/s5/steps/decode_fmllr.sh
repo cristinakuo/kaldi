@@ -218,9 +218,9 @@ if [ $stage -le 5 ]; then
 fi
 
 if ! $skip_scoring ; then
-  [ ! -x local/score.sh ] && \
+  [ ! -x local/score_all.sh ] && \
     echo "$0: not scoring because local/score.sh does not exist or not executable." && exit 1;
-  local/score.sh $scoring_opts --cmd "$cmd" $data $graphdir $dir
+  local/score_all.sh $scoring_opts --cmd "$cmd" $data $graphdir $dir
 fi
 
 rm $dir/{trans_tmp,pre_trans}.*
