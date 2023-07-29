@@ -112,6 +112,7 @@ echo >&2 "SEQUITUR_PACKAGE: ${site_packages_dir:-}"
 echo >&2 "SEQUITUR: $SEQUITUR"
 echo >&2 "PYTHONPATH: ${PYTHONPATH:-}"
 mkdir -p $SEQUITUR
+echo PYTHONPATH=${PYTHONPATH:-}:$SEQUITUR PYTHONUSERBASE=$(pwd)
 PYTHONPATH=${PYTHONPATH:-}:$SEQUITUR PYTHONUSERBASE=$(pwd) python setup.py install --user --prefix=
 ) || {
   echo >&2 "Problem installing sequitur!"
