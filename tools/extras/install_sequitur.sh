@@ -15,12 +15,12 @@ fi
 
 # Install python-devel package if not already available
 # first, makes sure distutils.sysconfig usable
-if ! $(python -c "import distutils.sysconfig" &> /dev/null); then
+if ! $(python3 -c "import distutils.sysconfig" &> /dev/null); then
     echo "$0: WARNING: python library distutils.sysconfig not usable, this is necessary to figure out the path of Python.h." >&2
     echo "Proceeding with installation." >&2
 else
   # get include path for this python version
-  INCLUDE_PY=$(python -c "from distutils import sysconfig as s; print(s.get_python_inc())")
+  INCLUDE_PY=$(python3 -c "from distutils import sysconfig as s; print(s.get_python_inc())")
   if [ ! -f "${INCLUDE_PY}/Python.h" ]; then
       echo "$0 : ERROR: python-devel/python-dev not installed" >&2
       if which yum >&/dev/null; then
@@ -96,7 +96,7 @@ fi
 # the next two lines deal with the issue that the new setup tools
 # expect the directory in which we will be installing to be visible
 # as module directory to python
-site_packages_dir=$(PYTHONPATH="" python -m site --user-site | grep -oE "lib.*")
+site_packages_dir=$(PYTHONPATH="" python3 -m site --user-site | grep -oE "lib.*")
 echo "Site packages... ${site_packages_dir}"
 SEQUITUR=$(pwd)/$site_packages_dir
 # DEBUG
@@ -113,7 +113,7 @@ echo >&2 "SEQUITUR: $SEQUITUR"
 echo >&2 "PYTHONPATH: ${PYTHONPATH:-}"
 mkdir -p $SEQUITUR
 echo PYTHONPATH=${PYTHONPATH:-}:$SEQUITUR PYTHONUSERBASE=$(pwd)
-PYTHONPATH=${PYTHONPATH:-}:$SEQUITUR PYTHONUSERBASE=$(pwd) python setup.py install --user --prefix=
+PYTHONPATH=${PYTHONPATH:-}:$SEQUITUR PYTHONUSERBASE=$(pwd) python3 setup.py install --user --prefix=
 ) || {
   echo >&2 "Problem installing sequitur!"
   exit 1
