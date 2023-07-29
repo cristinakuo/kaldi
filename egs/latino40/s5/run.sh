@@ -157,8 +157,8 @@ fi
 # Train tri3b, which is LDA+MLLT+SAT
 if [ $start_stage -le 6 ] && [ $end_stage -ge 6 ]; then
   echo ">>>>>>STAGE 6"
-  #steps/train_sat.sh --cmd "$train_cmd" 2500 15000 \
-  #  data/train data/lang exp/tri2b_ali_train exp/tri3b
+  steps/train_sat.sh --cmd "$train_cmd" 2500 15000 \
+    data/train data/lang exp/tri2b_ali_train exp/tri3b
 
   # decode using the tri3b model
   (
